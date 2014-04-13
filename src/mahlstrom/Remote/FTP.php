@@ -115,7 +115,6 @@ class FTP
         if ($this->conn_id) {
             ftp_close($this->conn_id);
             $this->conn_id = false;
-            \LOG::checkIn('FTP: This system was: ' . $this->system);
         }
     }
 
@@ -148,7 +147,7 @@ class FTP
     {
         try {
             $date = new DateTime($dateString);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo $e->getMessage();
             exit(1);
         }
