@@ -6,4 +6,4 @@
  * Time: 22:50
  */
 
-class RemoteConnectException extends \Exception{};
+class RemoteConnectException extends \Exception{}

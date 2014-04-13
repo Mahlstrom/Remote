@@ -9,6 +9,4 @@
 namespace mahlstrom\Remote\Exceptions;
 
 
-class RemoteNListException extends \Exception{
-
-} 
+class RemoteNListException extends \Exception{}

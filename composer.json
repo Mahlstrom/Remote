@@ -8,6 +8,9 @@
             "role": "Developer"
         }
     ],
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
     "require": {
         "php": ">=5.0.0",
         "phpseclib/phpseclib": "0.3.6"

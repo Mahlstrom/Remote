@@ -27,10 +27,10 @@ class FTP
         return false;
     }
 
-    public function __construct($hostName, $user, $password)
+    public function __construct($hostName, $user, $password, $port=21,$timeout=10)
     {
         $this->hostname = $hostName;
-        $this->conn_id = ftp_connect($hostName, 21, 10);
+        $this->conn_id = ftp_connect($hostName, $port, $timeout);
         if (!$this->conn_id) {
             unset($this);
             throw new RemoteConnectException($hostName . ' is dead');
@@ -42,7 +42,9 @@ class FTP
 
     public function readDir($path = '.')
     {
-        ftp_chdir($this->conn_id, $path);
+        if(!@ftp_chdir($this->conn_id, $path)){
+            return false;
+        }
         $rawfiles = ftp_rawlist($this->conn_id, $path);
         if ($rawfiles == false) {
             throw new RemoteNListException('"'.$path.'" @ '.$this->hostname);
@@ -112,10 +114,12 @@ class FTP
 
     public function close()
     {
+        $closed=false;
         if ($this->conn_id) {
-            ftp_close($this->conn_id);
+            $closed=ftp_close($this->conn_id);
             $this->conn_id = false;
         }
+        return $closed;
     }
 
     public function __destruct()
@@ -161,7 +165,7 @@ class FTP
     public function quickDir($string)
     {
         $arr = ftp_nlist($this->conn_id, $string);
-        var_dump($arr);
+        return $arr;
     }
 
     public function get($localFile, $remoteFile)
@@ -173,11 +177,13 @@ class FTP
         return ftp_get($this->conn_id, $localFile, $remoteFile, FTP_BINARY);
     }
 
+    #TODO Check how we can test this
     public function mkdir($path)
     {
         return ftp_mkdir($this->conn_id, $path);
     }
 
+    #TODO Check how we can test this
     public function chk_mkdir($path)
     {
         $pathParts = explode('/', $path);
@@ -191,6 +197,12 @@ class FTP
 
     public function put($localFile, $remoteFile)
     {
+        #TODO Check how we can test this
         // TODO: Implement put() method.
+    }
+
+    public function getServerType()
+    {
+        return $this->system;
     }
 }
