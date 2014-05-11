@@ -1,12 +1,12 @@
 <?php
-use mahlstrom\Remote\FTP;
-
 /**
  * Created by PhpStorm.
  * User: mahlstrom
  * Date: 13/04/14
  * Time: 20:26
  */
+
+use mahlstrom\Remote\FTP;
 
 class FTPTest extends PHPUnit_Framework_TestCase
 {
@@ -19,10 +19,10 @@ class FTPTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException mahlstrom\Remote\Exceptions\RemoteConnectException
+     * @expectedException mahlstrom\Remote\RemoteConnectException
      */
     public function testFailConnection(){
-        $this->ftp = new FTP('ftp.funet.fi','','',984,2);
+        $this->ftp = new FTP('ftp.funet.fi','','',984,1);
     }
     public function testIfConnected()
     {
@@ -44,7 +44,7 @@ class FTPTest extends PHPUnit_Framework_TestCase
 
     public function testQuickDir()
     {
-        $this->assertTrue(is_array($this->ftp->quickDir('.')));
+        $this->assertTrue(is_array($this->ftp->nlist('.')));
     }
 
     public function testGetFile(){
