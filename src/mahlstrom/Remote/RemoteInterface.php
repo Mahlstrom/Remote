@@ -21,7 +21,23 @@ interface remoteInterface {
 
 	public function delete($path);
 
+	/**
+	 * Fetch a file from remote and write to local
+	 *
+	 * @param $remote_file
+	 * @param $local_file
+	 * @param int $offset
+	 * @return mixed
+	 */
 	public function get($remote_file, $local_file, $offset = 0);
+
+	/**
+	 * @param $local_file
+	 * @param $remote_file
+	 * @param int $mode
+	 * @return bool
+	 */
+	public function put($local_file, $remote_file, $mode = 0755);
 
 	public function isConnected();
 
@@ -30,8 +46,6 @@ interface remoteInterface {
 	public function mkdir($dir, $mode = -1, $recursive = false);
 
 	public function nlist($dir = '.');
-
-	public function put($local_file, $remote_file, $mode = 0755);
 
 	public function pwd();
 
