@@ -96,15 +96,17 @@ class FTP implements RemoteInterface {
 						}
 					} elseif(!empty($rawfile)) {
 						$info = preg_split("/[\s]+/", $rawfile, 9);
-						$name = $info[8];
-						$arraypointer[$name] = (object)array(
-							'name'   => $name,
-							'is_dir' => $info[0]{0} == 'd',
-							'size'   => $info[4],
-							'Hsize'  => $this->byteConvert($info[4]),
-							'chmod'  => $this->chModNum($info[0]),
-							'date'   => $this->fileDateToTime($info[5] . ' ' . $info[6] . ' ' . $info[7])
-						);
+						if(count($info) >= 8) {
+							$name = $info[8];
+							$arraypointer[$name] = (object)array(
+								'name'   => $name,
+								'is_dir' => $info[0]{0} == 'd',
+								'size'   => $info[4],
+								'Hsize'  => $this->byteConvert($info[4]),
+								'chmod'  => $this->chModNum($info[0]),
+								'date'   => $this->fileDateToTime($info[5] . ' ' . $info[6] . ' ' . $info[7])
+							);
+						}
 					}
 				}
 				break;
@@ -291,17 +293,33 @@ class FTP implements RemoteInterface {
 	 * @param string $localFile
 	 * @param string $remoteFile
 	 * @param int $mode
+	 * @return bool
 	 */
-	public function put($localFile, $remoteFile,$mode=0755) {
-		// TODO: Implement put() method.
+	public function put($localFile, $remoteFile, $mode = FTP_BINARY) {
+
+		return ftp_put($this->conn_id, $remoteFile, $localFile, $mode);
 	}
 
 
 	/**
-	 * @param $dir
+	 * Remove a file
+	 *
+	 * @param string $path
+	 * @return bool
+	 */
+	public function delete($path) {
+
+		return ftp_delete($this->conn_id, $path);
+	}
+
+
+	/**
+	 * @param string $dir
+	 * @return bool
 	 */
 	public function chdir($dir) {
-		// TODO: Implement chdir() method.
+
+		return ftp_chdir($this->conn_id, $dir);
 	}
 
 	/**
@@ -332,14 +350,6 @@ class FTP implements RemoteInterface {
 	}
 
 	/**
-	 * @param $path
-	 * @param bool $recursive
-	 */
-	public function delete($path, $recursive = false) {
-		// TODO: Implement delete() method.
-	}
-
-	/**
 	 *
 	 */
 	public function isConnected() {
@@ -357,14 +367,16 @@ class FTP implements RemoteInterface {
 	 *
 	 */
 	public function pwd() {
-		// TODO: Implement pwd() method.
+
+		return ftp_pwd($this->conn_id);
 	}
 
 	/**
 	 * @param $path
+	 * @return array
 	 */
 	public function rawlist($path) {
-		// TODO: Implement rawlist() method.
+		return ftp_rawlist($this->conn_id,$path);
 	}
 
 	/**
@@ -377,9 +389,10 @@ class FTP implements RemoteInterface {
 
 	/**
 	 * @param $path
+	 * @return boolean
 	 */
 	public function rmdir($path) {
-		// TODO: Implement rmdir() method.
+		return ftp_rmdir($this->conn_id,$path);
 	}
 
 	/**
@@ -393,6 +406,7 @@ class FTP implements RemoteInterface {
 	 * @param $filename
 	 */
 	public function stat($filename) {
+
 		// TODO: Implement stat() method.
 	}
 }

@@ -19,7 +19,7 @@ interface remoteInterface {
 
 	public function close();
 
-	public function delete($path, $recursive = false);
+	public function delete($path);
 
 	public function get($remote_file, $local_file, $offset = 0);
 
