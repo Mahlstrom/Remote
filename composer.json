@@ -16,8 +16,9 @@
         "phpseclib/phpseclib": "0.3.6"
     },
     "autoload": {
-        "psr-0":{
-            "mahlstrom": "src/"
-        }
+		"psr-4":{
+			"mahlstrom\\Remote\\":"src",
+			"mahlstrom\\Remote\\Test\\":"test"
+		}
     }
 }
