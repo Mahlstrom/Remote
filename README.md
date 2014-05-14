@@ -27,7 +27,7 @@ These are the methods implemented so far.
 
 As soon as I am happy with what I have built I will put the code up on [packagist.org](http://packagist.org)
 
-#Installation
+##Installation
 I am using composer and have not built my own autoload so it is dependent on composer right now.
 
 In composer.json add
