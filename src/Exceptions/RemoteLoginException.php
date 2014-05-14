@@ -8,10 +8,10 @@
 
 namespace mahlstrom\Remote\Exceptions;
 
-
 /**
  * @codeCoverageIgnore
  */
-class RemoteLoginException extends \Exception{
+class RemoteLoginException extends \Exception
+{
 
-} 
+}

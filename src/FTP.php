@@ -18,320 +18,356 @@ use mahlstrom\Remote\Exceptions\RemoteLoginException;
  * @package mahlstrom\Remote
  * @author Mahlstrom
  */
-class FTP extends RemoteHelper implements RemoteInterface {
+class FTP extends RemoteHelper implements RemoteInterface
+{
 
-	/**
-	 * Hostname param is only used for error reporting
-	 *
-	 * @var string
-	 */
-	private $hostname = '';
-	private $user = '';
-	private $password = '';
+    /**
+     * Holds the ftp connect resource.
+     *
+     * @var bool|resource
+     */
+    public $conn_id = false;
+    /**
+     * Hostname param is only used for error reporting
+     *
+     * @var string
+     */
+    private $hostname = '';
+    private $user = '';
+    private $password = '';
+    /**
+     * Tells the system type.
+     *
+     * @var bool|string
+     */
+    private $system = false;
 
-	/**
-	 * Holds the ftp connect resource.
-	 *
-	 * @var bool|resource
-	 */
-	public $conn_id = false;
-	/**
-	 * Tells the system type.
-	 *
-	 * @var bool|string
-	 */
-	private $system = false;
+    /**
+     * @param $hostName
+     * @param $user
+     * @param $password
+     * @param int $port
+     * @param int $timeout
+     * @throws Exceptions\RemoteConnectException
+     * @throws Exceptions\RemoteLoginException
+     */
+    public function __construct($hostName, $user, $password, $port = 21, $timeout = 10)
+    {
 
-	/**
-	 * @param $hostName
-	 * @param $user
-	 * @param $password
-	 * @param int $port
-	 * @param int $timeout
-	 * @throws Exceptions\RemoteConnectException
-	 * @throws Exceptions\RemoteLoginException
-	 */
-	public function __construct($hostName, $user, $password, $port = 21, $timeout = 10) {
+        $this->hostname = $hostName;
+        $this->user = $user;
+        $this->password = $password;
+        $this->conn_id = ftp_connect($hostName, $port, $timeout);
+        if (!$this->conn_id) {
+            unset($this);
+            throw new Exceptions\RemoteConnectException($hostName . ' is dead');
+        }
 
-		$this->hostname = $hostName;
-		$this->user = $user;
-		$this->password = $password;
-		$this->conn_id = ftp_connect($hostName, $port, $timeout);
-		if(!$this->conn_id) {
-			unset($this);
-			throw new Exceptions\RemoteConnectException($hostName . ' is dead');
-		}
+        $loginResult = @ftp_login($this->conn_id, $user, $password);
+        if (!$loginResult) {
+            throw new RemoteLoginException();
+        }
+        $this->system = ftp_systype($this->conn_id);
+        $this->userRoot = $this->pwd();
+        if (substr($this->userRoot, -1, 1) != '/') {
+            $this->userRoot .= '/';
+        }
 
-		$loginResult = @ftp_login($this->conn_id, $user, $password);
-		if(!$loginResult) {
-			throw new RemoteLoginException();
-		}
-		$this->system = ftp_systype($this->conn_id);
-		$this->userRoot = $this->pwd();
-		if(substr($this->userRoot, -1, 1) != '/') {
-			$this->userRoot .= '/';
-		}
+        return true;
+    }
 
-		return true;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function pwd()
+    {
 
-	/**
-	 * Get nlist raw data
-	 *
-	 * @param string $remoteDirectory
-	 * @return array
-	 */
-	public function nlist($remoteDirectory = '.') {
+        return ftp_pwd($this->conn_id);
+    }
 
-		$arr = ftp_nlist($this->conn_id, $remoteDirectory);
+    /**
+     * Get nlist raw data
+     *
+     * @param string $remoteDirectory
+     * @return array
+     */
+    public function nlist($remoteDirectory = '.')
+    {
 
-		return $arr;
-	}
+        $arr = ftp_nlist($this->conn_id, $remoteDirectory);
 
-	/**
-	 * Download a file from remote server
-	 *
-	 * @param string $localFile Path to the local file
-	 * @param string $remoteFile Path to the remote file
-	 * @param int $offset
-	 * @return bool
-	 */
-	public function get($localFile, $remoteFile, $offset = 0) {
+        return $arr;
+    }
 
-		$this->_checkSoLocalDirExists($localFile);
+    /**
+     * {@inheritDoc}
+     */
+    public function get($localFile, $remoteFile, $offset = 0)
+    {
 
-		return ftp_get($this->conn_id, $localFile, $remoteFile, FTP_BINARY, $offset);
-	}
+        $this->checkSoLocalDirExists($localFile);
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function mkdir($dir, $mode = -1, $recursive = false) {
+        return ftp_get($this->conn_id, $localFile, $remoteFile, FTP_BINARY, $offset);
+    }
 
-		if(@ftp_mkdir($this->conn_id, $dir)) {
-			return $dir;
-		}
+    /**
+     * {@inheritDoc}
+     */
+    public function mkdir($dir, $mode = -1, $recursive = false)
+    {
 
-		return false;
-	}
+        if (@ftp_mkdir($this->conn_id, $dir)) {
+            return $dir;
+        }
 
-	/**
-	 * Get the server type (Unix/Windows)
-	 *
-	 * @return string
-	 */
-	public function getServerType() {
+        return false;
+    }
 
-		return $this->system;
-	}
+    /**
+     * Get the server type (Unix/Windows)
+     *
+     * @return string
+     */
+    public function getServerType()
+    {
 
-	/**
-	 * Close the connection
-	 *
-	 * @return bool
-	 */
-	public function close() {
+        return $this->system;
+    }
 
-		$closed = false;
-		if($this->conn_id) {
-			$closed = ftp_close($this->conn_id);
-			$this->conn_id = false;
-		}
+    // @codingStandardsIgnoreStart
 
-		return $closed;
-	}
+    /**
+     * @deprecated
+     * @codeCoverageIgnore
+     */
+    public function is_connected()
+    {
 
-	/**
-	 * @deprecated
-	 * @codeCoverageIgnore
-	 */
-	public function is_connected() {
+        return $this->isConnected();
+    }
 
-		return $this->isConnected();
-	}
+    // @codingStandardsIgnoreEnd
 
-	/**
-	 * At destruction calls close
-	 *
-	 * @codeCoverageIgnore
-	 */
-	public function __destruct() {
+    /**
+     * {@inheritDoc}
+     */
+    public function isConnected()
+    {
 
-		$this->close();
-	}
+        if ($this->conn_id) {
+            return true;
+        }
 
-	/**
-	 * @param $dateString
-	 * @return string
-	 * @codeCoverageIgnore
-	 */
-	function fileDateToTime($dateString) {
+        return false;
+    }
 
-		try {
-			$date = new DateTime($dateString);
-		} catch(\Exception $e) {
-			echo $e->getMessage();
-			exit(1);
-		}
-		$now = new DateTime();
-		if($date > $now) {
-			$date->sub(new DateInterval('P1Y'));
-		}
+    /**
+     * At destruction calls close
+     *
+     * @codeCoverageIgnore
+     */
+    public function __destruct()
+    {
 
-		return $date->format('U');
-	}
+        $this->close();
+    }
 
-	/**
-	 * Upload a file to remote server
-	 *
-	 * @param string $localFile
-	 * @param string $remoteFile
-	 * @param int $mode
-	 * @return bool
-	 */
-	public function put($localFile, $remoteFile, $mode = FTP_BINARY) {
+    /**
+     * Close the connection
+     *
+     * @return bool
+     */
+    public function close()
+    {
 
-		return ftp_put($this->conn_id, $remoteFile, $localFile, $mode);
-	}
+        $closed = false;
+        if ($this->conn_id) {
+            $closed = ftp_close($this->conn_id);
+            $this->conn_id = false;
+        }
 
+        return $closed;
+    }
 
-	/**
-	 * Remove a file
-	 *
-	 * @param string $path
-	 * @return bool
-	 */
-	public function delete($path) {
+    /**
+     * Upload a file to remote server
+     *
+     * @param string $localFile
+     * @param string $remoteFile
+     * @param int $mode
+     * @return bool
+     */
+    public function put($localFile, $remoteFile, $mode = FTP_BINARY)
+    {
 
-		return ftp_delete($this->conn_id, $path);
-	}
+        if (@ftp_put($this->conn_id, $remoteFile, $localFile, $mode)) {
+            return true;
+        }
+        return false;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function delete($path)
+    {
 
-	/**
-	 * @param string $dir
-	 * @return bool
-	 */
-	public function chdir($dir) {
+        return ftp_delete($this->conn_id, $path);
+    }
 
-		return ftp_chdir($this->conn_id, $dir);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function chdir($dir)
+    {
 
-	/**
-	 * @returns bool
-	 */
-	public function isConnected() {
+        return ftp_chdir($this->conn_id, $dir);
+    }
 
-		if($this->conn_id) {
-			return true;
-		}
+    /**
+     * {@inheritDoc}
+     */
+    public function rmdir($path)
+    {
 
-		return false;
-	}
+        return ftp_rmdir($this->conn_id, $path);
+    }
 
-	/**
-	 *
-	 */
-	public function pwd() {
+    /**
+     * {@inheritDoc}
+     */
+    public function chmod($mode, $filename)
+    {
 
-		return ftp_pwd($this->conn_id);
-	}
+        return @ftp_chmod($this->conn_id, $mode, $filename);
+    }
 
-	/**
-	 * @param $path
-	 * @return array
-	 */
-	public function rawlist($path = '.') {
+    /**
+     * {@inheritDoc}
+     */
+    public function rename($oldName, $newName)
+    {
 
-		return ftp_rawlist($this->conn_id, $path);
-	}
+        if (@ftp_rename($this->conn_id, $oldName, $newName)) {
+            return true;
+        }
 
-	public function readDir($path = '.') {
+        return false;
+    }
 
-		if(!@ftp_chdir($this->conn_id, $path)) {
-			return false;
-		}
-		$rawFiles = $this->rawlist($path);
-		if($rawFiles == false) {
-			// @codeCoverageIgnoreStart
-			throw new Exceptions\RemoteNListException('"' . $path . '" @ ' . $this->hostname);
-			// @codeCoverageIgnoreEnd
-		}
-		$structure = array();
-		$arrayPointer = & $structure;
-		switch($this->system) {
-			case 'UNIX':
-				foreach($rawFiles as $rawFile) {
-					if($rawFile[0] == '/') {
-						// @codeCoverageIgnoreStart
-						$paths = array_slice(explode('/', str_replace(':', '', $rawFile)), 1);
-						$arrayPointer = & $structure;
-						foreach($paths as $path) {
-							foreach($arrayPointer as $i => $file) {
-								if($file['text'] == $path) {
-									$arrayPointer = & $arrayPointer[$i]['children'];
-									break;
-								}
-							}
-						}
-						// @codeCoverageIgnoreEnd
-					} elseif(!empty($rawFile)) {
-						$info = preg_split("/[\s]+/", $rawFile, 9);
-						if(count($info) >= 8) {
-							$name = $info[8];
-							$arrayPointer[$name] = new RemoteFile();
+    /**
+     * {@inheritDoc}
+     */
+    public function size($filename)
+    {
 
-							$arrayPointer[$name]->name = $name;
-							$arrayPointer[$name]->is_dir = $info[0]{0} == 'd';
-							$arrayPointer[$name]->size = $info[4];
-							$arrayPointer[$name]->Hsize = $this->byteConvert($info[4]);
-							$arrayPointer[$name]->mode = $this->chModNum($info[0]);
-							$arrayPointer[$name]->date = $this->fileDateToTime($info[5] . ' ' . $info[6] . ' ' . $info[7]);
-						}
-					}
-				}
-				break;
-		}
+        $result = ftp_size($this->conn_id, $filename);
+        if ($result == -1) {
+            return false;
+        }
 
-		return $structure;
-	}
+        return $result;
+    }
 
-	public function rmdir($path) {
+    /**
+     * {@inheritDoc}
+     */
+    public function stat($filename)
+    {
 
-		return ftp_rmdir($this->conn_id, $path);
-	}
+        $pathInfo = pathinfo($filename);
+        $result = $this->readDir($pathInfo['dirname']);
+        if (array_key_exists($filename, $result)) {
+            return $result[$filename];
+        } else {
+            return false;
+        }
+    }
 
-	public function chmod($mode, $filename) {
+    /**
+     * {@inheritDoc}
+     */
+    public function readDir($path = '.')
+    {
 
-		return @ftp_chmod($this->conn_id, $mode, $filename);
-	}
+        if (!@ftp_chdir($this->conn_id, $path)) {
+            return false;
+        }
+        $rawFiles = $this->rawlist($path);
+        if ($rawFiles == false) {
+            // @codeCoverageIgnoreStart
+            throw new Exceptions\RemoteNListException('"' . $path . '" @ ' . $this->hostname);
+            // @codeCoverageIgnoreEnd
+        }
+        $structure = array();
+        $arrayPointer = & $structure;
+        switch ($this->system) {
+            case 'UNIX':
+                foreach ($rawFiles as $rawFile) {
+                    if ($rawFile[0] == '/') {
+                        // @codeCoverageIgnoreStart
+                        $paths = array_slice(explode('/', str_replace(':', '', $rawFile)), 1);
+                        $arrayPointer = & $structure;
+                        foreach ($paths as $path) {
+                            foreach ($arrayPointer as $i => $file) {
+                                if ($file['text'] == $path) {
+                                    $arrayPointer = & $arrayPointer[$i]['children'];
+                                    break;
+                                }
+                            }
+                        }
+                        // @codeCoverageIgnoreEnd
+                    } elseif (!empty($rawFile)) {
+                        $info = preg_split("/[\s]+/", $rawFile, 9);
+                        if (count($info) >= 8) {
+                            $name = $info[8];
+                            $arrayPointer[$name] = new RemoteFile();
 
-	public function rename($oldName, $newName) {
+                            $arrayPointer[$name]->name = $name;
+                            $arrayPointer[$name]->is_dir = $info[0]{0} == 'd';
+                            $arrayPointer[$name]->size = $info[4];
+                            $arrayPointer[$name]->Hsize = $this->byteConvert($info[4]);
+                            $arrayPointer[$name]->mode = $this->chModNum($info[0]);
+                            $arrayPointer[$name]->date = $this->fileDateToTime(
+                                $info[5] . ' ' . $info[6] . ' ' . $info[7]
+                            );
+                        }
+                    }
+                }
+                break;
+        }
 
-		if(@ftp_rename($this->conn_id, $oldName, $newName)) {
-			return true;
-		}
+        return $structure;
+    }
 
-		return false;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function rawlist($path = '.')
+    {
 
-	public function size($filename) {
+        return ftp_rawlist($this->conn_id, $path);
+    }
 
-		$result = ftp_size($this->conn_id, $filename);
-		if($result == -1) {
-			return false;
-		}
+    /**
+     * @param $dateString
+     * @return string
+     * @codeCoverageIgnore
+     */
+    private function fileDateToTime($dateString)
+    {
 
-		return $result;
-	}
+        try {
+            $date = new DateTime($dateString);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            exit(1);
+        }
+        $now = new DateTime();
+        if ($date > $now) {
+            $date->sub(new DateInterval('P1Y'));
+        }
 
-	public function stat($filename) {
-
-		$pathInfo = pathinfo($filename);
-		$result = $this->readDir($pathInfo['dirname']);
-		if(array_key_exists($filename, $result)) {
-			return $result[$filename];
-		} else {
-			return false;
-		}
-	}
+        return $date->format('U');
+    }
 }

@@ -18,54 +18,58 @@ namespace mahlstrom\Remote;
  * @property int $date;
  * @package mahlstrom\Remote
  */
-class RemoteFile {
+class RemoteFile
+{
 
-	private $name;
-	private $is_dir;
-	private $size;
-	private $mode;
-	private $date;
+    private $name;
+    private $is_dir;
+    private $size;
+    private $mode;
+    private $date;
 
-	public function __set($key, $val) {
+    public function __set($key, $val)
+    {
 
-		switch($key) {
-			case 'size':
-				$this->size = (int)$val;
-				break;
-			case 'mode':
-				$this->mode = (int)$val;
-				break;
-			case 'date':
-				$this->date = $this->_normalize_date($val);
-				break;
+        switch ($key) {
+            case 'size':
+                $this->size = (int)$val;
+                break;
+            case 'mode':
+                $this->mode = (int)$val;
+                break;
+            case 'date':
+                $this->date = $this->normalizeDate($val);
+                break;
 
-			case 'name':
-				$this->name = (string)$val;
-				break;
-			case 'is_dir':
-				$this->is_dir = (bool)$val;
-		}
-	}
+            case 'name':
+                $this->name = (string)$val;
+                break;
+            case 'is_dir':
+                $this->is_dir = (bool)$val;
+        }
+    }
 
-	public function __get($key) {
+    public function __get($key)
+    {
 
-		if(array_key_exists($key, get_object_vars($this))) {
-			return $this->$key;
-		}
-		throw new \Exception('Property ' . $key . ' does not exist');
-	}
+        if (array_key_exists($key, get_object_vars($this))) {
+            return $this->$key;
+        }
+        throw new \Exception('Property ' . $key . ' does not exist');
+    }
 
-	private function _normalize_date($data) {
+    private function normalizeDate($data)
+    {
 
-		if(is_integer($data)) {
-			$b = new \DateTime();
-			$b->setTimestamp($data);
-			$hour = (int)$b->format('H');
-			$minute = (int)$b->format('i');
-			$b->setTime($hour, $minute, 0);
-			$data = $b->getTimestamp();
-		}
+        if (is_integer($data)) {
+            $b = new \DateTime();
+            $b->setTimestamp($data);
+            $hour = (int)$b->format('H');
+            $minute = (int)$b->format('i');
+            $b->setTime($hour, $minute, 0);
+            $data = $b->getTimestamp();
+        }
 
-		return (int)$data;
-	}
+        return (int)$data;
+    }
 }

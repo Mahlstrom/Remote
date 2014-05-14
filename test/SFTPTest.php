@@ -10,32 +10,34 @@ namespace mahlstrom\Remote\Test;
 
 use mahlstrom\Remote\SFTP;
 
-class SFTPTest extends abstractRemoteTest {
+class SFTPTest extends AbstractRemoteTest
+{
 
-	/** @var  SFTP */
-	protected $server;
+    /** @var  SFTP */
+    protected $server;
 
-	public function setUp() {
+    public function setUp()
+    {
 
-		$this->server = new SFTP('localhost', 'test', 'test');
-	}
+        $this->server = new SFTP('localhost', 'test', 'test');
+    }
 
-	/**
-	 * @expectedException \mahlstrom\Remote\Exceptions\RemoteLoginException
-	 */
-	public function testFailLogin() {
+    /**
+     * @expectedException \mahlstrom\Remote\Exceptions\RemoteLoginException
+     */
+    public function testFailLogin()
+    {
 
-		$this->server = new SFTP('localhost', '', '');
-	}
+        $this->server = new SFTP('localhost', '', '');
+    }
 
-	/**
-	 * @expectedException \mahlstrom\Remote\Exceptions\RemoteConnectException
-	 */
-	public function testFailConnection() {
+    /**
+     * @expectedException \mahlstrom\Remote\Exceptions\RemoteConnectException
+     */
+    public function testFailConnection()
+    {
 
-		$this->server = new SFTP('localhost', 'test', 'test', 15151);
-		$this->assertFalse($this->server->isConnected());
-	}
-
+        $this->server = new SFTP('localhost', 'test', 'test', 15151);
+        $this->assertFalse($this->server->isConnected());
+    }
 }
- 

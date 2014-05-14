@@ -10,39 +10,45 @@ namespace mahlstrom\Remote\Test;
 
 use mahlstrom\Remote\FTP;
 
-class FTPTest extends abstractRemoteTest {
+class FTPTest extends AbstractRemoteTest
+{
 
-	/** @var  FTP */
-	protected $server;
+    /** @var  FTP */
+    protected $server;
 
-	public function setUp() {
+    public function setUp()
+    {
 
-		$this->server = new FTP('localhost', 'test', 'test');
-	}
+        $this->server = new FTP('localhost', 'test', 'test');
+    }
 
-	public function testServerType() {
+    public function testServerType()
+    {
 
-		$this->assertTrue(is_string($this->server->getServerType()));
-	}
+        $this->assertTrue(is_string($this->server->getServerType()));
+    }
 
-	/**
-	 * @expectedException \mahlstrom\Remote\Exceptions\RemoteLoginException
-	 */
-	public function testFailLogin() {
+    /**
+     * @expectedException \mahlstrom\Remote\Exceptions\RemoteLoginException
+     */
+    public function testFailLogin()
+    {
 
-		$this->server = new FTP('localhost', '', '');
-	}
+        $this->server = new FTP('localhost', '', '');
+    }
 
-	/**
-	 * @expectedException \mahlstrom\Remote\Exceptions\RemoteConnectException
-	 */
-	public function testFailConnection() {
+    /**
+     * @expectedException \mahlstrom\Remote\Exceptions\RemoteConnectException
+     */
+    public function testFailConnection()
+    {
 
-		$this->server = new FTP('ftp.funet.fi', '', '', 984, 1);
-	}
+        $this->server = new FTP('ftp.funet.fi', '', '', 984, 1);
+    }
 
-	public function tearDown() {
+    public function tearDown()
+    {
 
-		$this->server->close();
-	}
+        $this->server->close();
+    }
 }

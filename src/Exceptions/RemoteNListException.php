@@ -10,9 +10,9 @@ namespace mahlstrom\Remote\Exceptions;
 /**
  * Class RemoteNListException
  *
- * @codeCoverageIgnore
  * @package mahlstrom\Remote
  */
-class RemoteNListException extends \Exception {
+class RemoteNListException extends \Exception
+{
 
 }

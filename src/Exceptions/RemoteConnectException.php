@@ -12,6 +12,7 @@ namespace mahlstrom\Remote\Exceptions;
  *
  * @package mahlstrom\Remote
  */
-class RemoteConnectException extends \Exception {
+class RemoteConnectException extends \Exception
+{
 
 }
