@@ -7,123 +7,164 @@
  */
 namespace mahlstrom\Remote\Test;
 
+use mahlstrom\Remote\RemoteInterface;
 
-use mahlstrom\Remote\remoteInterface;
+abstract class AbstractRemoteTest extends \PHPUnit_Framework_TestCase
+{
 
-abstract class abstractRemoteTest extends \PHPUnit_Framework_TestCase{
-	protected $testDir='1234_test_ahl';
-	/** @var RemoteInterface */
-	protected $server=false;
+    protected $testDir = '1234_test_ahl';
+    /** @var RemoteInterface */
+    protected $server = false;
 
-	public function testIfConnected() {
+    public function testIfConnected()
+    {
 
-		$this->assertTrue($this->server->isConnected());
-	}
+        $this->assertTrue($this->server->isConnected());
+    }
 
-	public function testCreateDirectory() {
+    public function testCreateDirectory()
+    {
 
-		$this->assertEquals($this->testDir,$this->server->mkdir($this->testDir));
-	}
+        $this->assertEquals($this->testDir, $this->server->mkdir($this->testDir));
+    }
 
-	public function testCreateFailedDirectory() {
+    public function testCreateFailedDirectory()
+    {
 
-		$this->assertFalse($this->server->mkdir($this->testDir.'/et/ea'));
-	}
+        $this->assertFalse($this->server->mkdir($this->testDir . '/et/ea'));
+    }
 
-	public function testQuickDir() {
+    public function testQuickDir()
+    {
 
-		$this->assertContains($this->testDir,$this->server->nlist('.'));
+        $this->assertContains($this->testDir, $this->server->nlist('.'));
+    }
 
-	}
+    public function testNlistFail()
+    {
 
-	public function testSetStatOnFile(){
-		touch('/tmp/README');
-		$this->server->put('/tmp/README','chmodfile');
-		$result= $this->server->stat('chmodfile');
-		$this->assertEquals(644,$result->mode,'Mode before change');
-		$this->assertEquals(0666,$this->server->chmod(0666,'chmodfile'),'CHange of moode');
-		$result= $this->server->stat('chmodfile');
-		$this->assertEquals(666,$result->mode,'Mode after change');
-		$this->server->delete('chmodfile');
-		$this->assertFalse($this->server->chmod(0666,'chmodfile'));
-		$this->assertFalse( $this->server->stat('chmodfileq'));
-	}
+        $this->assertFalse($this->server->nlist('failDir1234321_'));
+    }
+
+    public function testSetStatOnFile()
+    {
+
+        touch('/tmp/README');
+        $this->server->put('/tmp/README', 'chmodfile');
+        $result = $this->server->stat('chmodfile');
+        $this->assertEquals(644, $result->mode, 'Mode before change');
+        $this->assertEquals(0666, $this->server->chmod(0666, 'chmodfile'), 'CHange of moode');
+        $result = $this->server->stat('chmodfile');
+        $this->assertEquals(666, $result->mode, 'Mode after change');
+        $this->server->delete('chmodfile');
+        $this->assertFalse($this->server->chmod(0666, 'chmodfile'));
+        $this->assertFalse($this->server->stat('chmodfileq'));
+    }
 
 
-	public function testChdir() {
+    public function testChdir()
+    {
 
-		$this->assertTrue($this->server->chdir($this->testDir));
+        $this->assertTrue($this->server->chdir($this->testDir));
+    }
 
-	}
+    public function testPwd()
+    {
 
-	public function testPwd() {
-		$this->server->chdir($this->testDir);
-		$this->assertEquals('/Users/test/'.$this->testDir, $this->server->pwd());
-	}
+        $this->server->chdir($this->testDir);
+        $this->assertEquals('/Users/test/' . $this->testDir, $this->server->pwd());
+    }
 
-	public function testRemoveDirectory(){
-		$this->assertTrue($this->server->rmdir($this->testDir));
-	}
+    public function testRemoveDirectory()
+    {
 
-	public function testPutFile() {
-		$this->assertTrue(touch('/tmp/README'));
-		$this->assertTrue($this->server->put('/tmp/README', 'README'));
-		unlink('/tmp/README');
-	}
+        $this->assertTrue($this->server->rmdir($this->testDir));
+    }
 
-	/**
-	 * @depends testPutFile
-	 */
-	public function testGetFile() {
+    public function testPutFile()
+    {
 
-		$this->assertTrue($this->server->get('/tmp/test/README2', 'README'));
-		unlink('/tmp/test/README2');
-		rmdir('/tmp/test');
-	}
+        $this->assertTrue(touch('/tmp/README'));
+        $this->assertTrue($this->server->put('/tmp/README', 'README'));
+        unlink('/tmp/README');
+    }
 
-	/**
-	 * @depends testPutFile
-	 */
-	public function testDeleteFile() {
+    public function testPutErrorFile()
+    {
 
-		$this->assertTrue($this->server->delete('README'));
-	}
+        touch('/tmp/README');
+        $this->assertFalse($this->server->put('/tmp/README', 'donotwork/README'));
+        unlink('/tmp/README');
+    }
 
-	public function testReadRootDirectory() {
+    /**
+     * @depends testPutFile
+     */
+    public function testGetFile()
+    {
 
-		$this->assertTrue(is_array($this->server->readDir('.')));
-	}
+        $this->assertTrue($this->server->get('/tmp/test/README2', 'README'));
+        unlink('/tmp/test/README2');
+        rmdir('/tmp/test');
+    }
 
-	public function testReadWrongDir() {
+    /**
+     * @depends testPutFile
+     */
+    public function testDeleteFile()
+    {
 
-		$this->assertFalse($this->server->readDir('./Blutti'));
-	}
-	public function testRenameFileOnServer(){
-		touch('/tmp/README');
-		$this->assertTrue($this->server->put('/tmp/README','_rename_this_'));
-		$this->assertTrue($this->server->rename('_rename_this_','_rename_this2_'));
-		$this->assertTrue($this->server->rename('_rename_this2_','_rename_this_'));
-		$this->assertFalse($this->server->rename('_rename_this2_','_rename_this_'));
-		$this->assertTrue($this->server->delete('_rename_this_'));
-	}
+        $this->assertTrue($this->server->delete('README'));
+    }
 
-	public function testFileSize(){
-		$this->assertEquals(12, $this->server->size('BBlit'));
-	}
+    public function testReadRootDirectory()
+    {
 
-	public function testFileSizeOnNoExistingFile(){
-		$this->assertFalse($this->server->size('BBlit123__'));
-	}
+        $this->assertTrue(is_array($this->server->readDir('.')));
+    }
 
-	public function testCloseAndIsConnectedIsFalse(){
-		$this->assertTrue($this->server->close());
-		$this->assertFalse( $this->server->isConnected());
-	}
+    public function testReadWrongDir()
+    {
 
-	public function tearDown(){
-		if($this->server){
-		$this->server->delete('chmodfile');
-		}
-		parent::tearDown();
-	}
+        $this->assertFalse($this->server->readDir('./Blutti'));
+    }
+
+    public function testRenameFileOnServer()
+    {
+
+        touch('/tmp/README');
+        $this->assertTrue($this->server->put('/tmp/README', '_rename_this_'));
+        $this->assertTrue($this->server->rename('_rename_this_', '_rename_this2_'));
+        $this->assertTrue($this->server->rename('_rename_this2_', '_rename_this_'));
+        $this->assertFalse($this->server->rename('_rename_this2_', '_rename_this_'));
+        $this->assertTrue($this->server->delete('_rename_this_'));
+    }
+
+    public function testFileSize()
+    {
+
+        $this->assertEquals(12, $this->server->size('BBlit'));
+    }
+
+    public function testFileSizeOnNoExistingFile()
+    {
+
+        $this->assertFalse($this->server->size('BBlit123__'));
+    }
+
+    public function testCloseAndIsConnectedIsFalse()
+    {
+
+        $this->assertTrue($this->server->close());
+        $this->assertFalse($this->server->isConnected());
+    }
+
+    public function tearDown()
+    {
+        // This will be fun
+        if ($this->server) {
+            $this->server->delete('chmodfile');
+        }
+        parent::tearDown();
+    }
 }
