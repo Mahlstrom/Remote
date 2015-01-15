@@ -1,6 +1,11 @@
 {
     "name": "mahlstrom/remote",
-    "description": "Accessing remote files throu FTP, sFTP and more",
+    "description": "Accessing remote files throu FTP, sFTP",
+    "keywords": [
+        "sftp",
+        "ftp"
+    ],
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Magnus Ahlström",
